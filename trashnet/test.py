@@ -6,8 +6,8 @@ import torch.optim as optim
 from torch.optim import lr_scheduler
 import time
 import copy
-from my_dataset import load_dataset
-from models_resnet import resnet18
+from .my_dataset import load_dataset
+from .models_resnet import resnet18
 
 # plt.ion()  # interactive mode
 # data_path = '/home/fyf/benke/Hec/data/bladder_tumor_data/'

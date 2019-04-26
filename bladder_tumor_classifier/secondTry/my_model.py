@@ -2,10 +2,8 @@ import torch.nn as nn
 import math
 import torch.utils.model_zoo as model_zoo
 
-
-__all__ = ['ResNet', 'resnet18', 'resnet34', 'resnet50', 'resnet101',
+__all__ = ['ResNet', 'resnet18', 'resnet18new', 'tt', 'resnet34', 'resnet50', 'resnet101',
            'resnet152']
-
 
 model_urls = {
     'resnet18': 'https://download.pytorch.org/models/resnet18-5c106cde.pth',
@@ -153,6 +151,28 @@ class ResNet(nn.Module):
         return x
 
 
+class tt(nn.Module):
+
+    def __init__(self, ft_extractor: nn.Module, ft_dim, class1_num, class2_num):
+        """
+
+        :param ft_extractor:
+        :param ft_dim:
+        :param class1_num:
+        :param class2_num:
+        """
+        super().__init__()
+        self.ft_extractor = ft_extractor
+        self.fc_for_class1 = nn.Linear(ft_dim, class1_num)
+        self.fc_for_class2 = nn.Linear(ft_dim, class2_num)
+
+    def forward(self, x):
+        x = self.ft_extractor(x)
+        o1 = self.fc_for_class1(x)
+        o2 = self.fc_for_class2(x)
+        return o1, o2
+
+
 def resnet18new(pretrained=False, **kwargs):
     """Constructs a ResNet-18 model.
 
@@ -165,6 +185,18 @@ def resnet18new(pretrained=False, **kwargs):
         model_grad.load_state_dict(model_zoo.load_url(model_urls['resnet18']))
         model_stag.load_state_dict(model_zoo.load_url(model_urls['resnet18']))
     return model_grad, model_stag
+
+
+def resnet18(pretrained=False, **kwargs):
+    """Constructs a ResNet-18 model.
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on ImageNet
+    """
+    model = ResNet(BasicBlock, [2, 2, 2, 2], **kwargs)
+    if pretrained:
+        model.load_state_dict(model_zoo.load_url(model_urls['resnet18']))
+    return model
 
 
 def resnet34(pretrained=False, **kwargs):
