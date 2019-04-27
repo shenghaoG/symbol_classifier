@@ -6,8 +6,8 @@ import torch.optim as optim
 from torch.optim import lr_scheduler
 import time
 import copy
-from bladder_tumor_classifier.secondTry.my_dataset import load_dataset
-from bladder_tumor_classifier.secondTry.my_model import resnet18new
+from bladder_tumor_classifier.my_dataset import load_dataset
+from bladder_tumor_classifier import resnet18new
 
 # plt.ion()  # interactive mode
 # data_path = '/home/fyf/benke/Hec/data/bladder_tumor_data/'
@@ -76,9 +76,9 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                             optimizer[x].step()
 
                 # statistics
-                running_loss += loss.item()*inputs.size(0)
+                running_loss += loss.item() * inputs.size(0)
                 corrects = {x: torch.sum(preds[x] == labels[x])
-                                     for x in ['grading', 'staging']}
+                            for x in ['grading', 'staging']}
                 running_corrects['grading'] += corrects['grading']
                 running_corrects['staging'] += corrects['staging']
             epoch_loss = running_loss / dataset_sizes[phase]
@@ -103,15 +103,16 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
         print(x + 'Best val Acc: {:4f}'.format(best_acc[x]))
 
     # load best model weights
-    model.load_state_dict(best_model_wts['grading'])
-    return model
+    model_ft_grad.load_state_dict(best_model_wts['grading'])
+    model_ft_stag.load_state_dict(best_model_wts['staging'])
+    return model_ft_grad, model_ft_stag
 
 
 # Load a pretrained model and reset final fully connected layer.
 
 model_ft_grad, model_ft_stag = resnet18new(pretrained=True)
 model_ft = {'grading': model_ft_grad,
-         'staging': model_ft_stag}
+            'staging': model_ft_stag}
 for x in ['grading', 'staging']:
     num_ftrs = model_ft[x].fc.in_features
     model_ft[x].fc = nn.Linear(num_ftrs, 2)
@@ -127,5 +128,5 @@ optimizer_ft = {x: optim.SGD(model_ft[x].parameters(), lr=0.001, momentum=0.9)
 exp_lr_scheduler = {x: lr_scheduler.StepLR(optimizer_ft[x], step_size=7, gamma=0.1)
                     for x in ['grading', 'staging']}
 
-model_ft = train_model(model_ft, criterion, optimizer_ft, exp_lr_scheduler,
-                       num_epochs=25)
+model_ft_grad, model_ft_stag = train_model(model_ft, criterion, optimizer_ft, exp_lr_scheduler,
+                                           num_epochs=25)

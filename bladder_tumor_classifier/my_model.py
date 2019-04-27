@@ -153,7 +153,7 @@ class ResNet(nn.Module):
 
 class tt(nn.Module):
 
-    def __init__(self, ft_extractor: nn.Module, ft_dim, class1_num, class2_num):
+    def __init__(self, ft_extractor: nn.Module, class1_num, class2_num):
         """
 
         :param ft_extractor:
@@ -162,12 +162,14 @@ class tt(nn.Module):
         :param class2_num:
         """
         super().__init__()
-        self.ft_extractor = ft_extractor
-        self.fc_for_class1 = nn.Linear(ft_dim, class1_num)
-        self.fc_for_class2 = nn.Linear(ft_dim, class2_num)
+        self.ft_dim = ft_extractor.fc.in_features
+        self.ft_extractor = nn.Sequential(*list(ft_extractor.children())[:-1])
+        self.fc_for_class1 = nn.Linear(self.ft_dim, class1_num)
+        self.fc_for_class2 = nn.Linear(self.ft_dim, class2_num)
 
     def forward(self, x):
         x = self.ft_extractor(x)
+        x = x.view(x.size(0), -1)
         o1 = self.fc_for_class1(x)
         o2 = self.fc_for_class2(x)
         return o1, o2

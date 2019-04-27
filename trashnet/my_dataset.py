@@ -10,17 +10,18 @@ import os.path as osp
 import pandas as pd
 from random import shuffle
 
-#data_root = '/home/fengyifan/data/tiaotiao/tumor_cls/tumor_data'
-#data_root = '/home/fyf/benke/Hec/data/'#数据根地址
+# data_root = '/home/fengyifan/data/tiaotiao/tumor_cls/tumor_data'
+# data_root = '/home/fyf/benke/Hec/data/'#数据根地址
+data_root = '/home/fyf/benke/GongShenghao/data/trash_data'
 data_root = '/home/fyf/benke/GongShenghao/data/trash_data'
 info_dir = osp.join(data_root, 'DataInfo.xlsx')
 val_ratio = 0.2
 
 type_map = {'cardboard': 0,
             'paper': 1,
-            'glass':2,
-            'metal':3,
-            'plastic':4}
+            'glass': 2,
+            'metal': 3,
+            'plastic': 4}
 
 data_transforms = {
     'train': transforms.Compose([
@@ -37,7 +38,8 @@ data_transforms = {
     ]),
 }
 
-def random_split(data_root=data_root,#数据随机化
+
+def random_split(data_root=data_root,  # 数据随机化
                  info_dir=info_dir,
                  val_ratio=val_ratio):
     info = pd.read_excel(info_dir)
@@ -48,16 +50,17 @@ def random_split(data_root=data_root,#数据随机化
 
     val_num = int(len(img_list) * val_ratio)
     idx_list = list(range(len(img_list)))
-    shuffle(idx_list)#随机化idx_list
+    shuffle(idx_list)  # 随机化idx_list
 
-    train_idx = idx_list[val_num:]#train取后0.8的部分
-    val_idx = idx_list[0:val_num]#val取前0。2的部分
+    train_idx = idx_list[val_num:]  # train取后0.8的部分
+    val_idx = idx_list[0:val_num]  # val取前0。2的部分
     train_list = [{'img': img_list[x],
                    'type': type_list[x]} for x in train_idx]
 
     val_list = [{'img': img_list[x],
                  'type': type_list[x]} for x in val_idx]
     return train_list, val_list
+
 
 class Trash_dataset(Dataset):
 
@@ -84,4 +87,3 @@ def load_dataset(data_root=data_root, info_dir=info_dir, val_ratio=val_ratio):
     data_size = {'train': len(train_data),
                  'val': len(val_data)}
     return tumor_data, data_size
-
