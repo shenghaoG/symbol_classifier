@@ -8,13 +8,12 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.optim import lr_scheduler
 
-from bladder_tumor_classifier import resnet18new
-from bladder_tumor_classifier.my_dataset import load_dataset
+from my_model import resnet18new
+from my_dataset import load_dataset
+from config import Config_Split
 
-# plt.ion()  # interactive mode
-# data_path = '/home/fyf/benke/Hec/data/bladder_tumor_data/'
-# label_list_name = 'DataInfo.xlsx'
-dataloaders, dataset_sizes = load_dataset()
+cfg = Config_Split()
+dataloaders, dataset_sizes = load_dataset(cfg.split_json)
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 

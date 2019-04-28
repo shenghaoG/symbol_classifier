@@ -8,16 +8,13 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.optim import lr_scheduler
 
-from bladder_tumor_classifier import load_dataset
-from bladder_tumor_classifier import resnet18, tt
+from my_dataset import load_dataset
+from my_model import resnet18, tt
 
-grad_loss_ratio = 1.0
-stag_loss_ratio = 1.0
-# plt.ion()  # interactive mode
-# data_path = '/home/fyf/benke/Hec/data/bladder_tumor_data/'
-# label_list_name = 'DataInfo.xlsx'
-dataloaders, dataset_sizes = load_dataset()
+from config import Config_Conb
 
+cfg = Config_Conb()
+dataloaders, dataset_sizes = load_dataset(split_json=cfg.split_json)
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
@@ -61,7 +58,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=40):
                     _, preds_stag = torch.max(outputs_stag, 1)
                     loss_grad = criterion(outputs_grad, labels_grad)
                     loss_stag = criterion(outputs_stag, labels_stag)
-                    loss = grad_loss_ratio * loss_grad + stag_loss_ratio * loss_stag
+                    loss = cfg.grad_loss_ratio * loss_grad + cfg.stag_loss_ratio * loss_stag
 
                     # backward + optimize only if in training phase
                     if phase == 'train':
@@ -99,19 +96,23 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=40):
     return model
 
 
-# Load a pretrained model and reset final fully connected layer.
+if __name__ == '__main__':
+    # Load a pretrained model and reset final fully connected layer.
+    model_resnet18 = resnet18(pretrained=True)
+    model_hp = tt(model_resnet18, 2, 2)
+    model_hp = model_hp.to(device)
 
-model_resnet18 = resnet18(pretrained=True)
-model_hp = tt(model_resnet18, 2, 2)
-model_hp = model_hp.to(device)
+    criterion = nn.CrossEntropyLoss()
 
-criterion = nn.CrossEntropyLoss()
+    # Observe that all parameters are being optimized
+    optimizer_hp = optim.SGD(model_hp.parameters(), lr=0.001, momentum=0.9)
 
-# Observe that all parameters are being optimized
-optimizer_ft = optim.SGD(model_hp.parameters(), lr=0.001, momentum=0.9)
+    # Decay LR by a factor of 0.1 every 7 epochs
+    exp_lr_scheduler = lr_scheduler.StepLR(optimizer_hp, step_size=7, gamma=0.1)
 
-# Decay LR by a factor of 0.1 every 7 epochs
-exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=7, gamma=0.1)
+    model_hp = train_model(model_hp, criterion, optimizer_hp, exp_lr_scheduler,
+                           num_epochs=25)
+    torch.save(model_hp.state_dict(), cfg.model_save_dir)
+    print(f'save trained model to {cfg.model_save_dir}!')
+    print(f'Done!')
 
-model_ft = train_model(model_hp, criterion, optimizer_ft, exp_lr_scheduler,
-                       num_epochs=25)
