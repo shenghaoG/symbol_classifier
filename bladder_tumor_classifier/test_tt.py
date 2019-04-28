@@ -1,11 +1,13 @@
 from __future__ import print_function, division
 
+import copy
+import time
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.optim import lr_scheduler
-import time
-import copy
+
 from bladder_tumor_classifier import load_dataset
 from bladder_tumor_classifier import resnet18, tt
 

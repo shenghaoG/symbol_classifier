@@ -1,13 +1,15 @@
 from __future__ import print_function, division
 
+import copy
+import time
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.optim import lr_scheduler
-import time
-import copy
-from bladder_tumor_classifier.my_dataset import load_dataset
+
 from bladder_tumor_classifier import resnet18new
+from bladder_tumor_classifier.my_dataset import load_dataset
 
 # plt.ion()  # interactive mode
 # data_path = '/home/fyf/benke/Hec/data/bladder_tumor_data/'
